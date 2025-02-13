@@ -21,7 +21,8 @@ class datasets:
 
         user = await get_default_user()
 
-        dataset = await get_dataset(user.id, dataset_id)
+        from uuid import UUID
+        dataset = await get_dataset(user.id, UUID(dataset_id))
 
         return await get_dataset_data(dataset.id)
 

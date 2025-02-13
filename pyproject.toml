@@ -19,6 +19,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10.0,<3.13"
+voyageai = ">=0.3.2"
 openai = "1.59.4"
 pydantic = "2.10.5"
 python-dotenv = "1.0.1"
@@ -61,7 +62,7 @@ litellm = "1.57.2"
 groq = {version = "0.8.0", optional = true}
 langfuse = "^2.32.0"
 pydantic-settings = "^2.2.1"
-anthropic = "^0.26.1"
+anthropic = "0.42.0"
 sentry-sdk = {extras = ["fastapi"], version = "^2.9.0"}
 fastapi-users = {version = "14.0.0", extras = ["sqlalchemy"]}
 alembic = "^1.13.3"
@@ -84,7 +85,6 @@ tree-sitter = {version = "^0.24.0", optional = true}
 tree-sitter-python = {version = "^0.23.6", optional = true}
 plotly = {version = "^6.0.0", optional = true}
 gdown = {version = "^5.2.0", optional = true}
-voyageai = {version = "^1.0.0", optional = true}
 
 [tool.poetry.extras]
 filesystem = ["s3fs", "botocore"]

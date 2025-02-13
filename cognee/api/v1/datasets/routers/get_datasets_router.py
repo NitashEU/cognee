@@ -62,7 +62,7 @@ def get_datasets_router() -> APIRouter:
     async def delete_dataset(dataset_id: str, user: User = Depends(get_authenticated_user)):
         from cognee.modules.data.methods import get_dataset, delete_dataset
 
-        dataset = await get_dataset(user.id, dataset_id)
+        dataset = await get_dataset(user.id, UUID(dataset_id))
 
         if dataset is None:
             raise EntityNotFoundError(message=f"Dataset ({dataset_id}) not found.")
@@ -81,7 +81,7 @@ def get_datasets_router() -> APIRouter:
         from cognee.modules.data.methods import get_dataset
 
         # Check if user has permission to access dataset and data by trying to get the dataset
-        dataset = await get_dataset(user.id, dataset_id)
+        dataset = await get_dataset(user.id, UUID(dataset_id))
 
         # TODO: Handle situation differently if user doesn't have permission to access data?
         if dataset is None:
@@ -111,7 +111,7 @@ def get_datasets_router() -> APIRouter:
             print(error)
             return JSONResponse(
                 status_code=409,
-                content="Graphistry credentials are not set. Please set them in your .env file.",
+                content="Graphistry credentials are not set. Please set them in your .env file." + str(error),
             )
 
     @router.get(
@@ -122,7 +122,7 @@ def get_datasets_router() -> APIRouter:
     async def get_dataset_data(dataset_id: str, user: User = Depends(get_authenticated_user)):
         from cognee.modules.data.methods import get_dataset_data, get_dataset
 
-        dataset = await get_dataset(user.id, dataset_id)
+        dataset = await get_dataset(user.id, UUID(dataset_id))
 
         if dataset is None:
             return JSONResponse(
@@ -145,7 +145,8 @@ def get_datasets_router() -> APIRouter:
         from cognee.api.v1.datasets.datasets import datasets as cognee_datasets
 
         try:
-            datasets_statuses = await cognee_datasets.get_status(datasets)
+            dataset_uuids = [UUID(dataset_id) for dataset_id in datasets]
+            datasets_statuses = await cognee_datasets.get_status(dataset_uuids)
 
             return datasets_statuses
         except Exception as error:
@@ -158,7 +159,7 @@ def get_datasets_router() -> APIRouter:
         from cognee.modules.data.methods import get_data
         from cognee.modules.data.methods import get_dataset, get_dataset_data
 
-        dataset = await get_dataset(user.id, dataset_id)
+        dataset = await get_dataset(user.id, UUID(dataset_id))
 
         if dataset is None:
             return JSONResponse(
@@ -178,7 +179,7 @@ def get_datasets_router() -> APIRouter:
                 message=f"Data ({data_id}) not found in dataset ({dataset_id})."
             )
 
-        data = await get_data(user.id, data_id)
+        data = await get_data(user.id, UUID(data_id))
 
         if data is None:
             raise EntityNotFoundError(
