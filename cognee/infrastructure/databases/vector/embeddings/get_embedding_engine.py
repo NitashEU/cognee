@@ -1,6 +1,7 @@
 from cognee.infrastructure.databases.vector.embeddings.config import get_embedding_config
 from cognee.infrastructure.llm.config import get_llm_config
 from .EmbeddingEngine import EmbeddingEngine
+from .VoyageEmbeddingEngine import VoyageEmbeddingEngine
 
 
 def get_embedding_engine() -> EmbeddingEngine:
@@ -11,6 +12,14 @@ def get_embedding_engine() -> EmbeddingEngine:
         from .FastembedEmbeddingEngine import FastembedEmbeddingEngine
 
         return FastembedEmbeddingEngine(
+            model=config.embedding_model,
+            dimensions=config.embedding_dimensions,
+            max_tokens=config.embedding_max_tokens,
+        )
+
+    if config.embedding_provider == "voyage":
+        return VoyageEmbeddingEngine(
+            api_key=config.embedding_api_key or llm_config.llm_api_key,
             model=config.embedding_model,
             dimensions=config.embedding_dimensions,
             max_tokens=config.embedding_max_tokens,

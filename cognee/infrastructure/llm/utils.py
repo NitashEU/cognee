@@ -1,5 +1,6 @@
 import logging
 import litellm
+import voyageai
 
 from cognee.infrastructure.databases.vector import get_vector_engine
 from cognee.infrastructure.llm.get_llm_client import get_llm_client
@@ -58,4 +59,16 @@ async def test_embedding_connection():
     except Exception as e:
         logger.error(e)
         logger.error("Connection to Embedding handler could not be established.")
+        raise e
+
+
+async def test_voyage_connection(api_key: str):
+    try:
+        client = voyageai.Client(api_key=api_key)
+        result = client.embed(["test"], model="voyage-3")
+        if not result:
+            raise Exception("No result returned from Voyage API.")
+    except Exception as e:
+        logger.error(e)
+        logger.error("Connection to Voyage API could not be established.")
         raise e
