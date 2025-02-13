@@ -81,6 +81,20 @@ Installing Cognee with PostgreSQL and Neo4j support example:
 poetry add cognee -E postgres -E neo4j
 ```
 
+### With pip with voyageai support
+
+To install Cognee with support for voyageai use the appropriate command below.
+```bash
+pip install 'cognee[voyageai]'
+```
+
+### With poetry with voyageai support
+
+To install Cognee with support for voyageai use the appropriate command below.
+```bash
+poetry add cognee -E voyageai
+```
+
 ## 💻 Basic Usage
 
 ### Setup
