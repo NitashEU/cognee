@@ -25,6 +25,7 @@ from cognee.tasks.documents import (
 from cognee.tasks.graph import extract_graph_from_data
 from cognee.tasks.storage import add_data_points
 from cognee.tasks.summarization import summarize_text
+from cognee.tasks.repo_processor.get_repo_file_dependencies import get_repo_file_dependencies, get_repo_file_dependencies_lua
 
 logger = logging.getLogger("cognify.v2")
 
@@ -36,6 +37,7 @@ async def cognify(
     user: User = None,
     graph_model: BaseModel = KnowledgeGraph,
     tasks: list[Task] = None,
+    language: str = "python",
 ):
     if user is None:
         user = await get_default_user()
@@ -56,7 +58,7 @@ async def cognify(
     awaitables = []
 
     if tasks is None:
-        tasks = await get_default_tasks(user, graph_model)
+        tasks = await get_default_tasks(user, graph_model, language)
 
     for dataset in datasets:
         dataset_name = generate_dataset_name(dataset.name)
@@ -112,7 +114,7 @@ def generate_dataset_name(dataset_name: str) -> str:
 
 
 async def get_default_tasks(
-    user: User = None, graph_model: BaseModel = KnowledgeGraph
+    user: User = None, graph_model: BaseModel = KnowledgeGraph, language: str = "python"
 ) -> list[Task]:
     if user is None:
         user = await get_default_user()
@@ -135,6 +137,14 @@ async def get_default_tasks(
             ),
             Task(add_data_points, task_config={"batch_size": 10}),
         ]
+
+        if language == "python":
+            default_tasks.append(Task(get_repo_file_dependencies, detailed_extraction=False))
+        elif language == "lua":
+            default_tasks.append(Task(get_repo_file_dependencies_lua, detailed_extraction=False))
+        else:
+            raise ValueError(f"Unsupported language: {language}")
+
     except Exception as error:
         send_telemetry("cognee.cognify DEFAULT TASKS CREATION ERRORED", user.id)
         raise error
