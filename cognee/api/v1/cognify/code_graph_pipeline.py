@@ -14,8 +14,9 @@ from cognee.tasks.graph import extract_graph_from_data
 from cognee.tasks.ingestion import ingest_data
 from cognee.tasks.repo_processor import (
     get_data_list_for_user,
-    get_non_py_files,
+    get_non_code_files,
     get_repo_file_dependencies,
+    get_repo_file_dependencies_lua,
 )
 
 from cognee.tasks.storage import add_data_points
@@ -32,7 +33,7 @@ update_status_lock = asyncio.Lock()
 
 
 @observe
-async def run_code_graph_pipeline(repo_path, include_docs=False):
+async def run_code_graph_pipeline(repo_path, include_docs=False, language="python"):
     import cognee
     from cognee.low_level import setup
 
@@ -44,18 +45,22 @@ async def run_code_graph_pipeline(repo_path, include_docs=False):
     user = await get_default_user()
     detailed_extraction = False
 
-    tasks = [
-        Task(get_repo_file_dependencies, detailed_extraction=detailed_extraction),
-        # Task(enrich_dependency_graph, task_config={"batch_size": 50}),
-        # Task(expand_dependency_graph, task_config={"batch_size": 50}),
-        # Task(get_source_code_chunks, task_config={"batch_size": 50}),
-        # Task(summarize_code, task_config={"batch_size": 50}),
-        Task(add_data_points, task_config={"batch_size": 100 if detailed_extraction else 500}),
-    ]
+    if language == "python":
+        tasks = [
+            Task(get_repo_file_dependencies, detailed_extraction=detailed_extraction),
+            Task(add_data_points, task_config={"batch_size": 100 if detailed_extraction else 500}),
+        ]
+    elif language == "lua":
+        tasks = [
+            Task(get_repo_file_dependencies_lua, detailed_extraction=detailed_extraction),
+            Task(add_data_points, task_config={"batch_size": 100 if detailed_extraction else 500}),
+        ]
+    else:
+        raise ValueError(f"Unsupported language: {language}")
 
     if include_docs:
         non_code_tasks = [
-            Task(get_non_py_files, task_config={"batch_size": 50}),
+            Task(get_non_code_files, task_config={"batch_size": 50}),
             Task(ingest_data, dataset_name="repo_docs", user=user),
             Task(get_data_list_for_user, dataset_name="repo_docs", user=user),
             Task(classify_documents),

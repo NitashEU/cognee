@@ -311,3 +311,81 @@ modal run -d modal_deployment.py
 | FalkorDB | Vector/Graph       | Stable &#x2705;         |              | Unstable &#x274C;       |              |
 | PGVector | Vector             | Stable &#x2705;           |              | Unstable &#x274C;       |              |
 | Milvus   | Vector             | Stable &#x2705;           |              | Unstable &#x274C;       |              |
+
+## Lua Support
+
+Cognee now supports Lua in addition to Python. The code pipeline and repo processor have been updated to handle Lua files. This includes extracting dependencies and processing Lua files.
+
+### Lua Example
+
+First, copy `.env.template` to `.env` and add your OpenAI API key to the LLM_API_KEY field.
+
+This script will run the default pipeline for Lua:
+
+```python
+import cognee
+import asyncio
+from cognee.modules.search.types import SearchType
+
+async def main():
+    # Create a clean slate for cognee -- reset data and system state
+    print("Resetting cognee data...")
+    await cognee.prune.prune_data()
+    await cognee.prune.prune_system(metadata=True)
+    print("Data reset complete.\n")
+
+    # cognee knowledge graph will be created based on this Lua code
+    lua_code = """
+    function greet(name)
+        print("Hello, " .. name .. "!")
+    end
+    """
+
+    print("Adding Lua code to cognee:")
+    print(lua_code.strip())
+    # Add the Lua code, and make it available for cognify
+    await cognee.add(lua_code)
+    print("Lua code added successfully.\n")
+
+
+    print("Running cognify to create knowledge graph...\n")
+    print("Cognify process steps:")
+    print("1. Classifying the document: Determining the type and category of the input text.")
+    print("2. Checking permissions: Ensuring the user has the necessary rights to process the text.")
+    print("3. Extracting text chunks: Breaking down the text into sentences or phrases for analysis.")
+    print("4. Adding data points: Storing the extracted chunks for processing.")
+    print("5. Generating knowledge graph: Extracting entities and relationships to form a knowledge graph.")
+    print("6. Summarizing text: Creating concise summaries of the content for quick insights.\n")
+
+    # Use LLMs and cognee to create knowledge graph
+    await cognee.cognify(language="lua")
+    print("Cognify process complete.\n")
+
+
+    query_text = 'Tell me about the greet function'
+    print(f"Searching cognee for insights with query: '{query_text}'")
+    # Query cognee for insights on the added Lua code
+    search_results = await cognee.search(
+        query_text=query_text, query_type=SearchType.INSIGHTS
+    )
+
+    print("Search results:")
+    # Display results
+    for result_text in search_results:
+        print(result_text)
+
+    # Example output:
+       # ({'id': UUID('bc338a39-64d6-549a-acec-da60846dd90d'), 'updated_at': datetime.datetime(2024, 11, 21, 12, 23, 1, 211808, tzinfo=datetime.timezone.utc), 'name': 'greet', 'description': 'A function that prints a greeting message.'}, {'relationship_name': 'is_a_function_of', 'source_node_id': UUID('bc338a39-64d6-549a-acec-da60846dd90d'), 'target_node_id': UUID('6218dbab-eb6a-5759-a864-b3419755ffe0'), 'updated_at': datetime.datetime(2024, 11, 21, 12, 23, 15, 473137, tzinfo=datetime.timezone.utc)}, {'id': UUID('6218dbab-eb6a-5759-a864-b3419755ffe0'), 'updated_at': datetime.datetime(2024, 11, 21, 12, 23, 1, 211808, tzinfo=datetime.timezone.utc), 'name': 'Lua script', 'description': 'A script written in Lua programming language.'})
+       # (...)
+        #
+        # It represents nodes and relationships in the knowledge graph:
+        # - The first element is the source node (e.g., 'greet').
+        # - The second element is the relationship between nodes (e.g., 'is_a_function_of').
+        # - The third element is the target node (e.g., 'Lua script').
+
+if __name__ == '__main__':
+    asyncio.run(main())
+
+```
+When you run this script, you will see step-by-step messages in the console that help you trace the execution flow and understand what the script is doing at each stage.
+A version of this example is here: `examples/python/simple_example.py`
